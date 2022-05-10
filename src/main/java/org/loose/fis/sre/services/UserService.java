@@ -2,7 +2,9 @@ package org.loose.fis.sre.services;
 
 import org.dizitart.no2.Nitrite;
 import org.dizitart.no2.objects.ObjectRepository;
+import org.loose.fis.sre.exceptions.SignUpException;
 import org.loose.fis.sre.exceptions.UsernameAlreadyExistsException;
+import org.loose.fis.sre.exceptions.WrongCredentialsException;
 import org.loose.fis.sre.model.User;
 
 import java.nio.charset.StandardCharsets;
@@ -24,9 +26,9 @@ public class UserService {
         userRepository = database.getRepository(User.class);
     }
 
-    public static void addUser(String username, String password, String role) throws UsernameAlreadyExistsException {
+    public static void addUser(String username, String password, String role, String first_name, String last_name, String email, String phone) throws UsernameAlreadyExistsException {
         checkUserDoesNotAlreadyExist(username);
-        userRepository.insert(new User(username, encodePassword(username, password), role));
+        userRepository.insert(new User(username, encodePassword(username, password), role, first_name, last_name, email, phone));
     }
 
     private static void checkUserDoesNotAlreadyExist(String username) throws UsernameAlreadyExistsException {
@@ -34,6 +36,23 @@ public class UserService {
             if (Objects.equals(username, user.getUsername()))
                 throw new UsernameAlreadyExistsException(username);
         }
+    }
+
+    public static void checkCredentials(String username, String password, String role) throws WrongCredentialsException {
+        int credentials_ok=0;
+
+        for (User user : userRepository.find()) {
+            if (Objects.equals(username, user.getUsername()) && Objects.equals(encodePassword(username, password), user.getPassword()) && Objects.equals(role, user.getRole()))
+                credentials_ok=1;
+        }
+
+        if (credentials_ok==0)
+            throw new WrongCredentialsException(username,password,role);
+    }
+
+    public static void checkFilledInformations(String username, String password, String role, String first_name, String last_name, String email, String phone) throws SignUpException {
+        if (username.isEmpty() || password.isEmpty() || role.isEmpty() || first_name.isEmpty() || last_name.isEmpty() ||email.isEmpty() || phone.isEmpty())
+            throw new SignUpException(username,password,role,first_name,last_name,email,phone);
     }
 
     private static String encodePassword(String salt, String password) {

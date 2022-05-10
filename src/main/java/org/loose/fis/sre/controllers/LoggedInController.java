@@ -11,23 +11,16 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-public class LoogedInController {
+public class LoggedInController {
 
     @FXML
     private Button button_logout;
 
     @FXML
-    private Label label_hello;
-
-    public void setUserInformation(String username){
-        label_hello.setText("Hello " + username + "!");
-    }
-
-    @FXML
-    private void handleLogout(ActionEvent event) throws IOException {
+    private void handleLogout() throws IOException {
         Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("hello.fxml"));
-
         Stage window = (Stage) button_logout.getScene().getWindow();
+        window.setTitle("LogIn!");
         window.setScene(new Scene(root,600,400));
     }
 }

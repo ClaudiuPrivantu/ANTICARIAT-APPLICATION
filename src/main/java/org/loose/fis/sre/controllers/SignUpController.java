@@ -1,18 +1,19 @@
 package org.loose.fis.sre.controllers;
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.text.Text;
+import javafx.stage.Stage;
+import org.loose.fis.sre.exceptions.SignUpException;
+import org.loose.fis.sre.exceptions.UsernameAlreadyExistsException;
+import org.loose.fis.sre.services.UserService;
 
-import java.net.URL;
-import java.util.ResourceBundle;
+import java.io.IOException;
 
-public class SignUpController implements Initializable {
+public class SignUpController{
 
     @FXML
     private Button button_log_in;
@@ -38,28 +39,42 @@ public class SignUpController implements Initializable {
     @FXML
     private TextField tf_phone;
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        button_signup.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                if(tf_username.getText().trim().isEmpty() && tf_password.getText().isEmpty() && tf_email.getText().isEmpty() &&
-                        tf_firstname.getText().isEmpty() && tf_lastname.getText().isEmpty() &&tf_phone.getText().isEmpty()){
-                    DBUtils.signUpUser(event,tf_username.getText(),tf_password.getText());
-                } else{
-                    System.out.println("Please fill in all informations!");
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setContentText("Please fill in all informations to Sign Up!");
-                    alert.show();
-                }
-            }
-        });
+    @FXML
+    private Text registrationMessage;
 
-        button_log_in.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                DBUtils.changeScene(event,"hello-view.fxml","Log in!", null);
-            }
-        });
+    @FXML
+    private ChoiceBox role;
+
+    @FXML
+    public void initialize() {
+        role.getItems().addAll("Client/Anticariat", "Seller");
+    }
+
+    @FXML
+    private void handleSignUp() throws IOException{
+        try {
+            UserService.checkFilledInformations(tf_username.getText(), tf_password.getText(), (String) role.getValue(),tf_firstname.getText(), tf_lastname.getText(),tf_email.getText(),tf_phone.getText());
+            UserService.addUser(tf_username.getText(), tf_password.getText(), (String) role.getValue(),tf_firstname.getText(), tf_lastname.getText(),tf_email.getText(),tf_phone.getText());
+
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setContentText("Account created successfully!");
+            alert.show();
+        } catch (UsernameAlreadyExistsException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText(e.getMessage());
+            alert.show();
+        } catch (SignUpException e){
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText(e.getMessage());
+            alert.show();
+        }
+    }
+
+    @FXML
+    private void handleLogin() throws IOException {
+        Parent root = FXMLLoader.load(getClass().getClassLoader().getResource("hello.fxml"));
+        Stage window = (Stage) button_log_in.getScene().getWindow();
+        window.setTitle("LogIn!");
+        window.setScene(new Scene(root,600,400));
     }
 }
